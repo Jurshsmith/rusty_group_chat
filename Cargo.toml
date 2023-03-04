@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+  "rusty_group_chat_cli",
+  "rusty_group_chat_web",
+]
