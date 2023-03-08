@@ -1,3 +1,8 @@
+struct Websocket;
+
+///////////////////////////////////
+//     WEBSOCKET_URL BOUNDARY   //
+/////////////////////////////////
 pub struct WebsocketURL {
     url: String,
 }
@@ -17,6 +22,10 @@ impl WebsocketURL {
         } else {
             WebsocketURL { url }
         }
+    }
+
+    pub fn value(&self) -> &str {
+        &self.url
     }
 
     fn is_ws_prefixed(url: &str) -> bool {
