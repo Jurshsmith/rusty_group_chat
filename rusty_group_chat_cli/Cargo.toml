@@ -11,3 +11,7 @@ tungstenite = "0.18.0"
 [dependencies.crossterm]
 version = "0.26"
 features = ["serde", "event-stream"] 
+
+[dependencies.serde]
+version="1.0"
+features = ["derive"]

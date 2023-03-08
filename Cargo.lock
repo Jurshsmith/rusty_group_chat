@@ -312,6 +312,7 @@ name = "rusty_group_chat_cli"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "serde",
  "tungstenite",
 ]
 
