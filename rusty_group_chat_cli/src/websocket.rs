@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use std::net::TcpStream;
 use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
 
@@ -15,15 +15,15 @@ impl Websocket {
         Websocket { socket }
     }
 
-    pub fn send_json(&self, json: &impl Serialize) -> Result<(), tungstenite::Error> {
+    pub fn send_json(&mut self, json: &impl Serialize) -> Result<(), tungstenite::Error> {
         self.socket
             .write_message(Message::Text(serde_json::to_string(json).unwrap()))
     }
 
-    pub fn read_json<'a, T: Deserialize<'a>>(&self) -> Result<T, &str> {
+    pub fn read_json<T: DeserializeOwned>(&mut self) -> Result<T, String> {
         match self.socket.read_message() {
-            Ok(Message::Text(json_text)) => serde_json::from_str(&json_text).unwrap(),
-            err => Err(&format!("Expected JSON. Got: {}", err.unwrap())),
+            Ok(Message::Text(json_text)) => Ok(serde_json::from_str(&json_text).unwrap()),
+            err => Err(format!("Expected JSON. Got: {}", err.unwrap())),
         }
     }
 }
