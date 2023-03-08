@@ -1,4 +1,32 @@
-struct Websocket;
+use serde::{Deserialize, Serialize};
+use std::net::TcpStream;
+use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
+
+// TODO: Use WebsocketError interface for all errors
+pub struct WebsocketError;
+pub struct Websocket {
+    socket: WebSocket<MaybeTlsStream<TcpStream>>,
+}
+
+impl Websocket {
+    pub fn connect(url: &str, error_message: &str) -> Self {
+        let (socket, _connect_response) = connect(url).expect(error_message);
+
+        Websocket { socket }
+    }
+
+    pub fn send_json(&self, json: &impl Serialize) -> Result<(), tungstenite::Error> {
+        self.socket
+            .write_message(Message::Text(serde_json::to_string(json).unwrap()))
+    }
+
+    pub fn read_json<'a, T: Deserialize<'a>>(&self) -> Result<T, &str> {
+        match self.socket.read_message() {
+            Ok(Message::Text(json_text)) => serde_json::from_str(&json_text).unwrap(),
+            err => Err(&format!("Expected JSON. Got: {}", err.unwrap())),
+        }
+    }
+}
 
 ///////////////////////////////////
 //     WEBSOCKET_URL BOUNDARY   //
