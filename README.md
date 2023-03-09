@@ -7,3 +7,4 @@ Group chats on your terminal. Built with Rust 🦀
 CLI will be totally separate process from the Chat Web Server
 
 Run CLI using: `cargo watch -x 'run --bin rusty_group_chat_cli'`
+Run Web using: `cargo watch -x 'run --bin rusty_group_chat_web'`
