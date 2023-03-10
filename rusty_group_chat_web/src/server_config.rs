@@ -1,3 +1,5 @@
+use std::net::{SocketAddr, ToSocketAddrs};
+
 use dotenvy::dotenv;
 
 #[derive(Debug)]
@@ -19,8 +21,16 @@ impl ServerConfig {
         }
     }
 
+    pub fn socket_address(&self) -> SocketAddr {
+        self.host_with_port()
+            .to_socket_addrs()
+            .unwrap()
+            .next()
+            .unwrap()
+    }
+
     pub fn host_with_port(&self) -> String {
-        format!("{}{}", self.host, self.host)
+        format!("{}:{}", self.host, self.host)
     }
 
     fn default_host() -> String {
