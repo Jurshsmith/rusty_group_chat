@@ -3,19 +3,19 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use dotenvy::dotenv;
 
 #[derive(Debug)]
-pub struct ServerConfig {
+pub struct AppServerConfig {
     pub host: String,
     pub port: u16,
 }
 
-impl ServerConfig {
+impl AppServerConfig {
     pub fn get() -> Self {
         dotenv().ok();
 
         let server_host = std::env::var("SERVER_HOST").unwrap_or(Self::default_host());
         let server_port = std::env::var("SERVER_PORT").unwrap_or(Self::default_port());
 
-        ServerConfig {
+        AppServerConfig {
             host: server_host,
             port: server_port.parse().unwrap(),
         }

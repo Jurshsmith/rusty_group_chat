@@ -1,6 +1,7 @@
+mod app_server_config;
 mod app_state;
-mod server_config;
 
+use app_server_config::AppServerConfig;
 use app_state::AppState;
 use axum::{
     extract::{
@@ -13,7 +14,6 @@ use axum::{
 };
 use futures::{sink::SinkExt, stream::StreamExt};
 use rusty_group_chat::{Chat, User, UserRepoError};
-use server_config::ServerConfig;
 use std::sync::Arc;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -33,7 +33,7 @@ async fn main() {
         .route("/group_chat", get(group_chat_handler))
         .with_state(app_state);
 
-    let config = ServerConfig::get();
+    let config = AppServerConfig::get();
 
     tracing::info!("Starting server at http://{}:{}/", config.host, config.port);
 
