@@ -1,11 +1,12 @@
-use rusty_group_chat_cli::{GroupChat, GroupChatDetails, Terminal};
+use rusty_group_chat_cli::{GroupChat, GroupChatDetails};
 
-fn main() -> Result<(), ()> {
-    Terminal::init();
+#[tokio::main]
+async fn main() -> Result<(), ()> {
+    GroupChat::init();
 
     let group_chat_details = GroupChatDetails::collect();
 
-    GroupChat::join_with(group_chat_details);
+    GroupChat::join_with(group_chat_details).await;
 
     Ok(())
 }

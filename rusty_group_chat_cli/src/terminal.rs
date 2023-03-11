@@ -1,19 +1,6 @@
 pub struct Terminal;
 
-const INFO: &str = r#"
-
-Welcome To Rusty Group Chat 🦀
-
- - Press 'Enter' To Send Chat
- - Use 'Esc' to quit
-
-"#;
-
 impl Terminal {
-    pub fn init() {
-        println!("{}", INFO);
-    }
-
     pub fn read_line() -> Result<String, io::Error> {
         CrosstermTerminal::read_line()
     }

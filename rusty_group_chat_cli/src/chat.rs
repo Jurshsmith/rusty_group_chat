@@ -1,5 +1,14 @@
-use crate::{Terminal, Websocket, WebsocketURL};
+use crate::{Terminal, WebsocketURL};
 
+const INFO: &str = r#"
+
+Welcome To Rusty Group Chat 🦀
+
+ - Press 'Esc' to quit
+
+"#;
+
+#[derive(Debug)]
 pub struct GroupChatDetails {
     url: WebsocketURL,
     username: String,
@@ -16,7 +25,7 @@ impl GroupChatDetails {
         let username = Terminal::read_line().unwrap();
 
         GroupChatDetails {
-            url: WebsocketURL::new(url),
+            url: WebsocketURL::new(url).append_query_param("name", &username),
             username,
         }
     }
@@ -29,18 +38,61 @@ impl GroupChatDetails {
 ///////////////////////////////////
 //     GROUP_CHAT BOUNDARY      //
 /////////////////////////////////
+use std::env;
+
+use futures_channel::mpsc::UnboundedSender;
+use futures_util::{future, pin_mut, StreamExt};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
 pub struct GroupChat {
-    socket: Websocket,
+    // socket: Websocket,
 }
 
 impl GroupChat {
-    pub fn join_with(details: GroupChatDetails) -> Self {
-        let socket = Websocket::connect(
-            &details.url(),
-            "Couldn't connect to the provided url. Please check if the url is valid and try again.",
-        );
+    pub fn init() {
+        println!("{}", INFO);
+    }
 
-        GroupChat { socket }
+    pub async fn join_with(details: GroupChatDetails) -> Self {
+        let (socket_sink, socket_stream) = futures_channel::mpsc::unbounded();
+        // tokio::spawn(read_stdin(stdin_tx));
+
+        tokio::spawn(async move {
+            read_and_send_chat(socket_sink);
+        });
+        // tokio::spawn(async move {
+        //     let chat = Terminal::read_line().unwrap();
+
+        //     socket_sink.unbounded_send(Message::Text(chat)).unwrap();
+        // });
+
+        let (ws_stream, _) = connect_async(details.url())
+            .await
+            .expect("Failed to connect");
+
+        let (write, read) = ws_stream.split();
+
+        let stdin_to_ws = socket_stream.map(Ok).forward(write);
+        let ws_to_stdout = {
+            read.for_each(|message| async {
+                let received_message = message.unwrap().into_text().unwrap();
+
+                println!("{}", &received_message);
+            })
+        };
+
+        pin_mut!(stdin_to_ws, ws_to_stdout);
+        future::select(stdin_to_ws, ws_to_stdout).await;
+
+        GroupChat {}
+    }
+}
+
+fn read_and_send_chat(socket_sink: UnboundedSender<Message>) {
+    loop {
+        let chat = Terminal::read_line().unwrap();
+
+        socket_sink.unbounded_send(Message::Text(chat)).unwrap();
     }
 }

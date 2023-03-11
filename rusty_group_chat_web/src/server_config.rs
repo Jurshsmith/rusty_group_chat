@@ -29,8 +29,8 @@ impl ServerConfig {
             .unwrap()
     }
 
-    pub fn host_with_port(&self) -> String {
-        format!("{}:{}", self.host, self.host)
+    fn host_with_port(&self) -> String {
+        format!("{}:{}", self.host, self.port)
     }
 
     fn default_host() -> String {
