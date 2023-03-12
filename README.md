@@ -4,7 +4,9 @@ Group chats from your terminal. Built with Rust 🦀
 
 ## How It Works
 
-- Serve `rusty_group_chat_web` locally using: `cargo run --bin rusty_group_chat_cli`
+- Clone this Repo
+- Add a `.env` file using `.env.sample`'s template
+- Serve `rusty_group_chat_web` locally using: `cargo run --bin rusty_group_chat_web`
 - Ask your friends to also clone this repo and share the group chat endpoint/link.
 - Alternatively, you could use: [https://ngrok.com](https://ngrok.com) to expose the group chat
   endpoint outside your local network and share that instead.
