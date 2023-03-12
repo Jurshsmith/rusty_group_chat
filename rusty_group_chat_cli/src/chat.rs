@@ -42,7 +42,6 @@ use std::env;
 
 use futures_channel::mpsc::UnboundedSender;
 use futures_util::{future, pin_mut, StreamExt};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 
 pub struct GroupChat {
@@ -90,9 +89,7 @@ impl GroupChat {
 }
 
 fn read_and_send_chat(socket_sink: UnboundedSender<Message>) {
-    loop {
-        let chat = Terminal::read_line().unwrap();
-
+    while let Ok(chat) = Terminal::read_line() {
         socket_sink.unbounded_send(Message::Text(chat)).unwrap();
     }
 }

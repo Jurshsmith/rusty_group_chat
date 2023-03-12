@@ -59,12 +59,16 @@ impl ServerWS {
         }
     }
 
+    // TODO:  Ensure message string is serializable
     /// Stream from passed client stream to all connected clients' websockets
-    pub fn stream_from_client_to_clients(
+    pub fn stream_from_client_to_clients<T>(
         self,
         mut client_ws_stream: SplitStream<WebSocket>,
-        payload_processor: fn(&str) -> String,
-    ) -> tokio::task::JoinHandle<()> {
+        payload_processor: T,
+    ) -> tokio::task::JoinHandle<()>
+    where
+        T: Fn(&str) -> String + Send + 'static,
+    {
         tokio::spawn(async move {
             // client_ws_stream will receive serializable payload
             while let Some(Ok(Message::Text(payload))) = client_ws_stream.next().await {
@@ -76,6 +80,7 @@ impl ServerWS {
         })
     }
 
+    //TODO:  Ensure message is serializable
     /// Broadcasts message to all connected client websockets
     pub fn stream_to_clients(&self, message: String) -> Result<usize, SendError<String>> {
         self.channel.send(message)
