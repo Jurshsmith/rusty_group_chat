@@ -1,6 +1,6 @@
 mod terminal;
 pub use terminal::Terminal;
-mod chat;
-pub use chat::{GroupChat, GroupChatDetails};
+mod group_chat;
+pub use group_chat::{GroupChat, GroupChatDetails};
 mod websocket;
-pub use websocket::{Websocket, WebsocketURL};
+pub use websocket::WebsocketURL;

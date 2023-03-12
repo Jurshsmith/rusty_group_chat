@@ -9,7 +9,7 @@ use axum::{
 };
 use futures::stream::StreamExt;
 use futures::SinkExt;
-use rusty_group_chat::{SystemChatMessage, User};
+use rusty_group_chat::{Chat, SystemChatMessage, User};
 
 use crate::app_state::AppState;
 
@@ -35,15 +35,14 @@ impl GroupChatHandler {
                 let user_joined_msg = SystemChatMessage::user_joined(&current_user);
                 state.server_ws.stream_to_clients(user_joined_msg).unwrap();
 
-                let current_user_name = current_user.name.clone();
+                let current_user_ = current_user.clone();
 
-                let recv_task = state.server_ws.clone().stream_from_client_to_clients(
-                    client_ws_stream,
-                    move |message: &str| {
-                        // TODO: Pattern Match if it's a system chat message or a user chat message and preprocess accordingly
-                        format!("{}: {}", current_user_name, message)
-                    },
-                );
+                let recv_task = state
+                    .server_ws
+                    .clone()
+                    .stream_from_client_to_clients(client_ws_stream, move |message: &str| {
+                        Chat::from_user(message, &current_user_).to_string()
+                    });
 
                 state.server_ws.cleanup_tasks(send_task, recv_task).await;
 
