@@ -19,13 +19,7 @@ async fn main() {
 
     let config = AppServerConfig::get();
 
-    tracing::info!("Starting server at http://{}:{}/", config.host, config.port);
-
-    tracing::info!(
-        "Join Group Chat: http://{}:{}/group_chat",
-        config.host,
-        config.port
-    );
+    tracing::info!("Join group chat at http://{}:{}/", config.host, config.port);
 
     axum::Server::bind(&config.socket_address())
         .serve(AppRouter::new().into_make_service())
