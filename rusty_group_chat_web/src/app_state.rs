@@ -72,8 +72,6 @@ impl ServerWS {
         tokio::spawn(async move {
             // client_ws_stream will receive serializable payload
             while let Some(Ok(Message::Text(payload))) = client_ws_stream.next().await {
-                println!("Streaming payload from client to Clients: {}", &payload);
-
                 let message = payload_processor(&payload);
                 let _send_result = self.clone().stream_to_clients(message);
             }
@@ -88,7 +86,6 @@ impl ServerWS {
 
     pub async fn cleanup_tasks(&self, mut send_task: Task, mut recv_task: Task) {
         // If any one of the tasks run to completion, we abort the other.
-
         tokio::select! {
             _result = (&mut send_task) => recv_task.abort(),
             _result = (&mut recv_task) => send_task.abort(),
@@ -111,8 +108,6 @@ impl ServerWSStream {
     ) -> tokio::task::JoinHandle<()> {
         tokio::spawn(async move {
             while let Ok(payload) = self.stream.recv().await {
-                println!("Streaming payload to client : {}", &payload);
-                // TODO: Reject chat sent from current user
                 if client_ws_sink.send(Message::Text(payload)).await.is_err() {
                     break;
                 }
