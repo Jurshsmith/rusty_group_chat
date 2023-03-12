@@ -10,7 +10,9 @@ pub enum UserRepoError {
 
 impl Into<String> for UserRepoError {
     fn into(self) -> String {
-        serde_json::json!({ "error": "user already exists"}).to_string()
+        match self {
+            UserRepoError::UserAlreadyExists => "Already exists".to_string(),
+        }
     }
 }
 
@@ -26,7 +28,7 @@ impl UserRepo {
         }
     }
 
-    pub fn add_user(&self, user: User) -> Result<User, UserRepoError> {
+    pub fn add_user(&self, user: &User) -> Result<(), UserRepoError> {
         let mut users = self.users.lock().unwrap();
 
         if users.contains(&user.name) {
@@ -34,7 +36,7 @@ impl UserRepo {
         } else {
             users.insert(user.name.clone());
 
-            Ok(user)
+            Ok(())
         }
     }
 

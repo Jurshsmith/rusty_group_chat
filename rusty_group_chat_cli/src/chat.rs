@@ -75,9 +75,15 @@ impl GroupChat {
         let stdin_to_ws = socket_stream.map(Ok).forward(write);
         let ws_to_stdout = {
             read.for_each(|message| async {
-                let received_message = message.unwrap().into_text().unwrap();
-
-                println!("{}", &received_message);
+                match message {
+                    Ok(message) => {
+                        let received_message = message.into_text().unwrap();
+                        // TODO: Pattern match if this a system message that user already exists ?
+                        // And Redo Cool Alias Prompt!
+                        println!("{}", &received_message);
+                    }
+                    Err(_error) => {}
+                }
             })
         };
 
