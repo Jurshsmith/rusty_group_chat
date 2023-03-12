@@ -4,14 +4,25 @@ impl Terminal {
     pub fn read_line() -> Result<String, io::Error> {
         CrosstermTerminal::read_line()
     }
+
+    pub fn clear_all() {
+        CrosstermTerminal::clear_all();
+    }
+
+    pub fn clear_last_line() {
+        CrosstermTerminal::clear_n_previous_lines(1);
+    }
 }
 
 ///////////////////////////////////
 //      CROSSTERM BOUNDARY      //
 /////////////////////////////////
-use std::io;
-
-use crossterm::event::{self, Event, KeyCode, KeyEvent};
+use crossterm::{
+    cursor,
+    event::{self, Event, KeyCode, KeyEvent},
+    terminal, ExecutableCommand,
+};
+use std::io::{self, stdout};
 
 struct CrosstermTerminal;
 
@@ -32,5 +43,23 @@ impl CrosstermTerminal {
         }
 
         Ok(line)
+    }
+
+    pub fn clear_all() {
+        let mut stdout = stdout();
+
+        stdout.execute(cursor::RestorePosition).unwrap();
+        stdout
+            .execute(terminal::Clear(terminal::ClearType::FromCursorDown))
+            .unwrap();
+    }
+
+    pub fn clear_n_previous_lines(line: u16) {
+        let mut stdout = stdout();
+
+        stdout.execute(cursor::MoveToPreviousLine(line)).unwrap();
+        stdout
+            .execute(terminal::Clear(terminal::ClearType::FromCursorDown))
+            .unwrap();
     }
 }
