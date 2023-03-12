@@ -23,7 +23,7 @@ impl GroupChatDetails {
 
         println!("Enter a cool alias others can identify you with:");
 
-        let username = Terminal::read_line().unwrap();
+        let username = Terminal::read_line().unwrap().trim().to_string();
 
         GroupChatDetails {
             url: WebsocketURL::new(url).append_query_param("name", &username),
@@ -55,8 +55,10 @@ impl GroupChat {
 
         tokio::spawn(async move {
             while let Ok(chat) = Terminal::read_line() {
-                socket_sink.unbounded_send(Message::Text(chat)).unwrap();
-                Terminal::clear_last_line();
+                if !chat.is_empty() {
+                    socket_sink.unbounded_send(Message::Text(chat)).unwrap();
+                    Terminal::clear_last_line();
+                }
             }
         });
 
