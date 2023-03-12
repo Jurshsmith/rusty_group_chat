@@ -2,7 +2,7 @@
 
 Group chats from your terminal. Built with Rust 🦀
 
-## How It Works
+## How It Works ⚡️
 
 - Clone this Repo
 - Add a `.env` file using `.env.sample`'s template
@@ -13,7 +13,7 @@ Group chats from your terminal. Built with Rust 🦀
 - Run the `cargo run --bin rusty_group_chat_cli` and follow the prompts to begin chatting. Your friends
   will need to do same. Happy chatting! 👩🏿‍💻 🧑🏿‍💻
 
-### FEATURE TODOs
+### FEATURE TODOs 🔥
 
 - Allow user try another user name if it's already taken
 - Add text colors for personalizing chat messages per user
