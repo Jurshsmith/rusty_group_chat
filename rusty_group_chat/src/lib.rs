@@ -5,7 +5,7 @@ mod user_repo;
 pub use user_repo::{UserRepo, UserRepoError};
 
 mod chat;
-pub use chat::Chat;
+pub use chat::{Chat, ChatSender};
 
 mod system_chat_message;
 pub use system_chat_message::SystemChatMessage;
