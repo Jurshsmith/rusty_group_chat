@@ -30,7 +30,7 @@ type Task = tokio::task::JoinHandle<()>;
 
 #[derive(Clone)]
 pub struct ServerWS {
-    channel: Box<Sender<String>>,
+    channel: Sender<String>,
 }
 
 impl ServerWS {
@@ -42,7 +42,7 @@ impl ServerWS {
         let (sink_channel, _stream_channel) = broadcast::channel(100);
 
         ServerWS {
-            channel: Box::new(sink_channel),
+            channel: sink_channel,
         }
     }
 
