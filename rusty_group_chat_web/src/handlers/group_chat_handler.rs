@@ -31,7 +31,6 @@ impl GroupChatHandler {
             Ok(()) => {
                 let send_task = state.server_ws.stream_into_client(client_ws_sink);
 
-                // TODO: Return a SystemChatMessage struct instead
                 let user_joined_msg = SystemChatMessage::user_joined(&current_user);
                 state.server_ws.stream_to_clients(user_joined_msg).unwrap();
 
@@ -46,7 +45,6 @@ impl GroupChatHandler {
 
                 state.server_ws.cleanup_tasks(send_task, recv_task).await;
 
-                // TODO: Return a SystemChatMessage struct instead
                 let user_left_msg = SystemChatMessage::user_left(&current_user);
                 state.server_ws.stream_to_clients(user_left_msg).unwrap();
 
@@ -54,7 +52,6 @@ impl GroupChatHandler {
                 state.user_repo.remove_user(current_user).unwrap();
             }
             Err(user_repo_error) => {
-                // TODO: Return a SystemChatMessage struct instead
                 // Send error current client websocket
                 client_ws_sink
                     .send(Message::Text(user_repo_error.into()))
