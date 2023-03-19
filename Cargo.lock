@@ -755,8 +755,6 @@ dependencies = [
  "futures-channel",
  "futures-util",
  "rusty_group_chat",
- "serde",
- "serde_json",
  "tokio",
  "tokio-tungstenite",
  "url",
@@ -771,7 +769,6 @@ dependencies = [
  "futures",
  "rusty_group_chat",
  "tokio",
- "tower",
  "tracing",
  "tracing-subscriber",
 ]
