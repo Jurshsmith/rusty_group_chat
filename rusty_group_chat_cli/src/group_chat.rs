@@ -73,7 +73,7 @@ impl GroupChat {
             chats_stream.for_each(|chat| async {
                 match chat {
                     Ok(chat) => {
-                        let received_chat = Chat::from_string(&chat.into_text().unwrap());
+                        let received_chat = Chat::deserialize(&chat.into_text().unwrap());
 
                         match received_chat.from {
                             ChatSender::System => {

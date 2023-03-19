@@ -29,11 +29,11 @@ impl Chat {
         }
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn serialize(&self) -> String {
         serde_json::to_string(&self).unwrap()
     }
 
-    pub fn from_string(chat_as_str: &str) -> Chat {
-        serde_json::from_str(&chat_as_str).unwrap()
+    pub fn deserialize(chat_as_str: &str) -> Chat {
+        serde_json::from_str(chat_as_str).unwrap()
     }
 }
