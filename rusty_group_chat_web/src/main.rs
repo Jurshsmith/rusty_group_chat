@@ -22,7 +22,7 @@ async fn main() {
     tracing::info!("Join group chat at http://{}:{}/", config.host, config.port);
 
     axum::Server::bind(&config.socket_address())
-        .serve(AppRouter::new().into_make_service())
+        .serve(AppRouter::new().router.into_make_service())
         .await
         .unwrap();
 }

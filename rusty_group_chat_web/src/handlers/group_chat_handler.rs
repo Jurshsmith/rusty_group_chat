@@ -40,7 +40,7 @@ impl GroupChatHandler {
                     .server_ws
                     .clone()
                     .stream_from_client_to_clients(client_ws_stream, move |message: &str| {
-                        Chat::from_user(message, &current_user_).to_string()
+                        Chat::from_user(message, &current_user_).serialize()
                     });
 
                 state.server_ws.cleanup_tasks(send_task, recv_task).await;
@@ -49,7 +49,7 @@ impl GroupChatHandler {
                 state.server_ws.stream_to_clients(user_left_msg).unwrap();
 
                 // Remove username from map so new clients can take it again.
-                state.user_repo.remove_user(current_user).unwrap();
+                state.user_repo.remove_user(current_user);
             }
             Err(user_repo_error) => {
                 // Send error current client websocket

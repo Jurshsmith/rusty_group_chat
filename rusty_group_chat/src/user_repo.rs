@@ -8,10 +8,10 @@ pub enum UserRepoError {
     UserAlreadyExists,
 }
 
-impl Into<String> for UserRepoError {
-    fn into(self) -> String {
-        match self {
-            UserRepoError::UserAlreadyExists => "Already exists".to_string(),
+impl From<UserRepoError> for String {
+    fn from(value: UserRepoError) -> Self {
+        match value {
+            UserRepoError::UserAlreadyExists => String::from("Already Exists"),
         }
     }
 }
@@ -40,9 +40,13 @@ impl UserRepo {
         }
     }
 
-    pub fn remove_user(&self, user: User) -> Result<(), ()> {
+    pub fn remove_user(&self, user: User) {
         self.users.lock().unwrap().remove(&user.name);
+    }
+}
 
-        Ok(())
+impl Default for UserRepo {
+    fn default() -> Self {
+        Self::new()
     }
 }
