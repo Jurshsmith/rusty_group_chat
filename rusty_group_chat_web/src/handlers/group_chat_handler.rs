@@ -7,57 +7,91 @@ use axum::{
     },
     response::IntoResponse,
 };
-use futures::stream::StreamExt;
-use futures::SinkExt;
+use futures::{
+    sink::SinkExt,
+    stream::{SplitStream, StreamExt},
+};
 use rusty_group_chat::{Chat, SystemChatMessage, User};
 
 use crate::app_state::AppState;
 
-pub struct GroupChatHandler;
+pub async fn join(
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+    user: Query<User>,
+) -> impl IntoResponse {
+    ws.on_upgrade(|socket| _join(socket, state, user.0))
+}
 
-impl GroupChatHandler {
-    pub async fn join(
-        ws: WebSocketUpgrade,
-        State(state): State<Arc<AppState>>,
-        user: Query<User>,
-    ) -> impl IntoResponse {
-        ws.on_upgrade(|socket| Self::_join(socket, state, user.0))
-    }
+async fn _join(my_socket: WebSocket, state: Arc<AppState>, current_user: User) {
+    let (mut me, mut receiver) = my_socket.split();
 
-    async fn _join(client_ws: WebSocket, state: Arc<AppState>, current_user: User) {
-        let (mut client_ws_sink, client_ws_stream) = client_ws.split();
+    // Allow user create a channel
+    // Allow users join different channels
+    match state.user_repo.add_user(&current_user) {
+        Ok(()) => {
+            let mut group_channel_subscription = state.group_chat.channel.subscribe();
 
-        match state.user_repo.add_user(&current_user) {
-            Ok(()) => {
-                let send_task = state.server_ws.stream_into_client(client_ws_sink);
+            let user_joined_msg = SystemChatMessage::user_joined(&current_user);
+            state.group_chat.channel.send(user_joined_msg).unwrap();
 
-                let user_joined_msg = SystemChatMessage::user_joined(&current_user);
-                state.server_ws.stream_to_clients(user_joined_msg).unwrap();
+            let send_task = tokio::spawn(async move {
+                while let Ok(msg) = group_channel_subscription.recv().await {
+                    if me.send(Message::Text(msg)).await.is_err() {
+                        break;
+                    }
+                }
+            });
 
-                let current_user_ = current_user.clone();
+            let group_channel = Arc::clone(&state.group_chat.channel);
 
-                let recv_task = state
-                    .server_ws
-                    .clone()
-                    .stream_from_client_to_clients(client_ws_stream, move |message: &str| {
-                        Chat::from_user(message, &current_user_).serialize()
-                    });
+            let receive_task = tokio::spawn({
+                let current_user = current_user.clone();
 
-                state.server_ws.cleanup_tasks(send_task, recv_task).await;
+                async move {
+                    while let Some(Ok(Message::Text(msg))) = receiver.next().await {
+                        group_channel
+                            .send(Chat::from_user(&msg, &current_user).serialize())
+                            .unwrap();
+                    }
+                }
+            });
 
-                let user_left_msg = SystemChatMessage::user_left(&current_user);
-                state.server_ws.stream_to_clients(user_left_msg).unwrap();
+            cleanup_tasks_when_either_completes(send_task, receive_task).await;
 
-                // Remove username from map so new clients can take it again.
-                state.user_repo.remove_user(current_user);
-            }
-            Err(user_repo_error) => {
-                // Send error current client websocket
-                client_ws_sink
-                    .send(Message::Text(user_repo_error.into()))
-                    .await
-                    .unwrap();
-            }
+            disconnect_user(&current_user, &state).await;
         }
+        Err(user_repo_error) => {
+            me.send(Message::Text(user_repo_error.into()))
+                .await
+                .unwrap();
+        }
+    }
+}
+
+async fn _get_username(current_user_stream: &mut SplitStream<WebSocket>) -> String {
+    current_user_stream
+        .next()
+        .await
+        .expect("Username required")
+        .unwrap()
+        .to_text()
+        .unwrap()
+        .to_string()
+}
+
+async fn disconnect_user(user: &User, state: &AppState) {
+    let user_left_msg = SystemChatMessage::user_left(&user);
+    state.group_chat.channel.send(user_left_msg).unwrap();
+    state.user_repo.remove_user(user.clone());
+}
+
+type Task = tokio::task::JoinHandle<()>;
+
+async fn cleanup_tasks_when_either_completes(mut send_task: Task, mut recv_task: Task) {
+    // If any one of the tasks run to completion, we abort the other.
+    tokio::select! {
+        _result = (&mut send_task) => recv_task.abort(),
+        _result = (&mut recv_task) => send_task.abort(),
     }
 }
