@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::{routing::get, Router};
 
-use crate::{app_state::AppState, handlers::GroupChatHandler};
+use crate::{app_state::AppState, handlers::group_chat_handler};
 
 pub struct AppRouter {
     pub router: Router,
@@ -14,7 +14,7 @@ impl AppRouter {
 
         AppRouter {
             router: Router::new()
-                .route("/", get(GroupChatHandler::join))
+                .route("/", get(group_chat_handler::join))
                 .with_state(app_state),
         }
     }
